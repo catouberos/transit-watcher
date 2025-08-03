@@ -10,7 +10,7 @@ import (
 	"github.com/google/uuid"
 )
 
-func InjectCredentials(header *http.Header) error {
+func injectCredentials(header *http.Header) error {
 	uuid, err := uuid.NewRandom()
 
 	if err != nil {

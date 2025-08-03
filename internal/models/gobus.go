@@ -1,14 +1,14 @@
 package models
 
-type Route struct {
-	Id       string         `json:"_id"`
-	Number   string         `json:"number"`
-	Name     string         `json:"name"`
-	Info     RouteInfo      `json:"info"`
-	Variants []RouteVariant `json:"vars"`
+type GoBusRoute struct {
+	Id       string              `json:"_id"`
+	Number   string              `json:"number"`
+	Name     string              `json:"name"`
+	Info     GoBusRouteInfo      `json:"info"`
+	Variants []GoBusRouteVariant `json:"vars"`
 }
 
-type RouteInfo struct {
+type GoBusRouteInfo struct {
 	Id                  string `json:"_id"`
 	InboundDescription  string `json:"inBoundDescription"`
 	OutboundDescription string `json:"outBoundDescription"`
@@ -20,20 +20,20 @@ type RouteInfo struct {
 	RouteType           string `json:"busType"`
 }
 
-type RouteVariant struct {
-	Id         string             `json:"_id"`
-	RouteId    string             `json:"routeId"`
-	Name       string             `json:"name"`
-	ShortName  string             `json:"shortName"`
-	Distance   float32            `json:"distance"`
-	StartStop  string             `json:"startStop"`
-	EndStop    string             `json:"endStop"`
-	IsOutbound bool               `json:"isOutbound"`
-	Duration   int32              `json:"runningTime"`
-	Stops      []RouteVariantStop `json:"stops"`
+type GoBusRouteVariant struct {
+	Id         string                  `json:"_id"`
+	RouteId    string                  `json:"routeId"`
+	Name       string                  `json:"name"`
+	ShortName  string                  `json:"shortName"`
+	Distance   float32                 `json:"distance"`
+	StartStop  string                  `json:"startStop"`
+	EndStop    string                  `json:"endStop"`
+	IsOutbound bool                    `json:"isOutbound"`
+	Duration   int32                   `json:"runningTime"`
+	Stops      []GoBusRouteVariantStop `json:"stops"`
 }
 
-type RouteVariantStop struct {
+type GoBusRouteVariantStop struct {
 	Id            string  `json:"_id"`
 	Code          string  `json:"code"`
 	Name          string  `json:"name"`

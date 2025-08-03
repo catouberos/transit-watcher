@@ -4,6 +4,7 @@ import (
 	"context"
 	"io"
 	"log"
+	"log/slog"
 	"net/http"
 	"sync"
 	"time"
@@ -12,64 +13,51 @@ import (
 // acknowledgement: this module is highly inspired by a question on stackoverflow
 // see: https://stackoverflow.com/questions/63812394/periodically-crawl-api-in-golang
 
-type PeriodicCrawlerOptions struct {
-	Interval time.Duration
-	Timeout  time.Duration
-	Delay    time.Duration
-}
-
 type PeriodicCrawler struct {
 	interval time.Duration
 	delay    time.Duration
 	client   http.Client
 
-	doneChan   chan bool
+	done       chan bool
 	resultChan chan []byte
 
 	mu   sync.Mutex
 	urls []string
 }
 
-func NewPeriodicCrawler(interval, delay time.Duration) *PeriodicCrawler {
-	props := &PeriodicCrawlerOptions{
-		Interval: interval,
-		Delay:    delay,
-	}
-
-	return &PeriodicCrawler{
-		interval: props.Interval,
-		delay:    props.Delay,
+func New(interval, delay time.Duration) *PeriodicCrawler {
+	crawler := PeriodicCrawler{
+		interval: interval,
+		delay:    delay,
 		client:   http.Client{},
 
-		doneChan:   make(chan bool, 1),
+		done:       make(chan bool),
 		resultChan: make(chan []byte),
 	}
+
+	go crawler.start()
+
+	return &crawler
 }
 
-func (c *PeriodicCrawler) Start() error {
-	go func() {
-		for {
-			ctx, cancel := context.WithTimeout(context.Background(), c.interval*2)
+func (c *PeriodicCrawler) start() {
+	for {
+		ctx, cancel := context.WithTimeout(context.Background(), c.interval*2)
+		defer cancel()
 
-			delay := c.delay
+		delay := c.delay
 
-			for _, url := range c.urls {
-				go c.fetchWithDelay(ctx, url, delay)
-				delay += 100 * time.Millisecond
-			}
-
-			<-time.After(c.interval)
-			cancel()
+		for _, url := range c.urls {
+			go c.fetchWithDelay(ctx, url, delay)
+			delay += 100 * time.Millisecond
 		}
-	}()
 
-	<-c.doneChan
-
-	// cleanup
-	close(c.doneChan)
-	close(c.resultChan)
-
-	return nil
+		select {
+		case <-c.done:
+			return
+		case <-time.After(c.interval):
+		}
+	}
 }
 
 func (c *PeriodicCrawler) SetURLs(urls []string) {
@@ -85,10 +73,6 @@ func (c *PeriodicCrawler) Result() <-chan []byte {
 	return c.resultChan
 }
 
-func (c *PeriodicCrawler) Done() chan<- bool {
-	return c.doneChan
-}
-
 // internal helper
 
 func (c *PeriodicCrawler) fetch(ctx context.Context, url string) error {
@@ -100,7 +84,7 @@ func (c *PeriodicCrawler) fetch(ctx context.Context, url string) error {
 		return err
 	}
 
-	err = InjectCredentials(&req.Header)
+	err = injectCredentials(&req.Header)
 
 	if err != nil {
 		return err
@@ -119,6 +103,7 @@ func (c *PeriodicCrawler) fetch(ctx context.Context, url string) error {
 		body, err := io.ReadAll(resp.Body)
 
 		if err != nil {
+			slog.Error("An error occurred while reading response", "error", err)
 			return err
 		}
 
@@ -133,4 +118,9 @@ func (c *PeriodicCrawler) fetch(ctx context.Context, url string) error {
 func (c *PeriodicCrawler) fetchWithDelay(ctx context.Context, url string, delay time.Duration) error {
 	<-time.After(delay)
 	return c.fetch(ctx, url)
+}
+
+func (c *PeriodicCrawler) Close() {
+	close(c.done)
+	close(c.resultChan)
 }
