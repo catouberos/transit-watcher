@@ -5,7 +5,7 @@ go 1.24.3
 toolchain go1.24.5
 
 require (
-	github.com/catouberos/geoloc v0.0.0-20250803145030-06261864f70a
+	github.com/catouberos/geoloc v0.0.0-20250803160501-040272fc5eba
 	github.com/google/uuid v1.6.0
 	github.com/rabbitmq/amqp091-go v1.10.0
 )

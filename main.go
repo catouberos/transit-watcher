@@ -2,23 +2,27 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
-	"log"
+	"log/slog"
 	"os"
 	"os/signal"
-	"strings"
+	"regexp"
 	"syscall"
 	"time"
 
-	"example.com/go-hello/internal/crawler"
-	"example.com/go-hello/internal/models"
+	amqp "github.com/rabbitmq/amqp091-go"
+
+	"github.com/catouberos/transit-watcher/internal/crawler"
+	"github.com/catouberos/transit-watcher/internal/handler"
+	"github.com/catouberos/transit-watcher/internal/models"
+	"github.com/catouberos/transit-watcher/internal/queues"
 )
 
 const (
-	OpTimeLayout = "15:04 -0700"
+	GoBusAllDataUrl = "https://api.gobus.vn/transit/data/getAllData"
 )
 
 func main() {
+	// done
 	done := make(chan bool)
 
 	// listen for interrupt signal to gracefully shutdown the application
@@ -30,95 +34,85 @@ func main() {
 		done <- true
 	}()
 
-	transitDataCrawler := crawler.NewPeriodicCrawler(1*time.Hour, 0*time.Second)
+	// queue setup
+	queue := queues.New("amqp://guest:guest@localhost:5672/")
+	defer queue.Close()
 
-	crawler := crawler.NewPeriodicCrawler(30*time.Second, 100*time.Millisecond)
+	// crawler setup
+	transitDataCrawler := crawler.New(1*time.Hour, 0*time.Second)
+	defer transitDataCrawler.Close()
 
-	go func() {
-		for {
-			<-done
-			transitDataCrawler.Done() <- true
-			crawler.Done() <- true
-		}
-	}()
+	crawler := crawler.New(30*time.Second, 100*time.Millisecond)
+	defer crawler.Close()
 
-	transitDataUrls := []string{"https://api.gobus.vn/transit/data/getAllData"}
+	transitDataUrls := []string{GoBusAllDataUrl}
 
 	transitDataCrawler.SetURLs(transitDataUrls)
 
-	go transitDataCrawler.Start()
-
 	go func() {
-		for data := range transitDataCrawler.Result() {
+		for response := range transitDataCrawler.Result() {
 			// unmarshal
-			routes := &[]models.Route{}
-			err := json.Unmarshal(data, routes)
+			routes := &[]models.GoBusRoute{}
 
+			err := json.Unmarshal(response.Body, routes)
 			if err != nil {
 				continue
 			}
 
-			urls := []string{}
+			urls := handler.FilterTransitRoutes(routes)
 
-			for _, route := range *routes {
-				opTimes := strings.Split(route.Info.OperationTime, " - ")
-
-				if len(opTimes) == 3 {
-					now := time.Now()
-
-					startTime, err := time.Parse(OpTimeLayout, opTimes[0]+" +0700")
-					startTime = time.Date(now.Year(), now.Month(), now.Day(), startTime.Hour(), startTime.Minute(), startTime.Second(), 0, now.Location())
-
-					if err != nil {
-						continue
-					}
-
-					if time.Now().Before(startTime) {
-						continue
-					}
-
-					endTime, err := time.Parse(OpTimeLayout, opTimes[1]+" +0700")
-					endTime = time.Date(now.Year(), now.Month(), now.Day(), endTime.Hour(), endTime.Minute(), endTime.Second(), 0, now.Location())
-
-					fmt.Println(route.Id, endTime)
-
-					if err != nil {
-						continue
-					}
-
-					if endTime.After(time.Now().Add(-2 * time.Hour)) {
-						continue
-					}
-
-				}
-
-				id := route.Id
-
-				urls = append(urls, fmt.Sprintf("https://multipass-api.golabs.vn/v2/public/busmap/route_bus_gps?regionCode=hcm&routeId=%s&direction=0", id))
-
-				if len(route.Variants) > 1 {
-					urls = append(urls, fmt.Sprintf("https://multipass-api.golabs.vn/v2/public/busmap/route_bus_gps?regionCode=hcm&routeId=%s&direction=1", id))
-				}
-			}
-
-			log.Printf("[INFO] Added %d routes/variants", len(urls))
+			slog.Info("Updated routes/variants from GoBus", "count", len(urls))
 
 			crawler.SetURLs(urls)
 		}
 	}()
 
-	go crawler.Start()
-
 	go func() {
-		for event := range crawler.Result() {
-			geolocation := &[]models.Geolocation{}
-			err := json.Unmarshal(event, geolocation)
+		r, err := regexp.Compile("([0-9]+)$")
+		if err != nil {
+			slog.Error("Error compiling regex", "error", err)
+			return
+		}
 
+		for response := range crawler.Result() {
+			geolocation := []models.MultiGoGeolocation{}
+
+			slog.Info("Updated vehicle location", "data", response)
+
+			err := json.Unmarshal(response.Body, &geolocation)
 			if err != nil {
+				slog.Error("Cannot unmarshal geolocation data", "error", err)
 				continue
 			}
 
-			log.Printf("[GEO] %#v\n", geolocation)
+			direction := r.FindString(response.Url)
+
+			isOutbound := true
+			if direction == "1" {
+				isOutbound = false
+			}
+
+			for _, loc := range geolocation {
+				slog.Info("Updated vehicle location", "data", loc)
+
+				data, err := json.Marshal(queues.NewGeolocationInsertData(&loc, isOutbound))
+				if err != nil {
+					slog.Error("Cannot marshal geolocation data", "error", err)
+					continue
+				}
+
+				err = queue.Push(
+					amqp.Publishing{
+						ContentType: "application/json",
+						Body:        data,
+					},
+					"geolocation",               // exchange
+					"geolocation.event.created", // routing key
+				)
+				if err != nil {
+					slog.Error("Cannot publish update to AMQP", "error", err)
+				}
+			}
 		}
 	}()
 

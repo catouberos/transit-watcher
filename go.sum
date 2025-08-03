@@ -2,6 +2,8 @@ github.com/catouberos/geoloc v0.0.0-20250803105054-b17bac01857c h1:QYEKZfOkZS3dt
 github.com/catouberos/geoloc v0.0.0-20250803105054-b17bac01857c/go.mod h1:6CpKiT8B2EdYwjEtSyRAX1rpEHHCpte3BFp4rJ9m084=
 github.com/catouberos/geoloc v0.0.0-20250803145030-06261864f70a h1:RYu5O3Q6EHBy/0mv1PW82/1ElAV0vUJkFwyuaJuTYUg=
 github.com/catouberos/geoloc v0.0.0-20250803145030-06261864f70a/go.mod h1:6CpKiT8B2EdYwjEtSyRAX1rpEHHCpte3BFp4rJ9m084=
+github.com/catouberos/geoloc v0.0.0-20250803160501-040272fc5eba h1:g4QIj3fq2j8p0+v/y/yg4HIR96i5ZoaswMxBNtRLXEk=
+github.com/catouberos/geoloc v0.0.0-20250803160501-040272fc5eba/go.mod h1:6CpKiT8B2EdYwjEtSyRAX1rpEHHCpte3BFp4rJ9m084=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/google/uuid v1.6.0 h1:NIvaJDMOsjHA8n1jAhLSgzrAzy1Hgr+hNrb57e+94F0=
 github.com/google/uuid v1.6.0/go.mod h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+yHo=

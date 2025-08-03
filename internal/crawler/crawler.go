@@ -18,11 +18,16 @@ type PeriodicCrawler struct {
 	delay    time.Duration
 	client   http.Client
 
-	done       chan bool
-	resultChan chan []byte
+	done      chan bool
+	responses chan *CrawlerResponse
 
 	mu   sync.Mutex
 	urls []string
+}
+
+type CrawlerResponse struct {
+	Url  string
+	Body []byte
 }
 
 func New(interval, delay time.Duration) *PeriodicCrawler {
@@ -31,8 +36,8 @@ func New(interval, delay time.Duration) *PeriodicCrawler {
 		delay:    delay,
 		client:   http.Client{},
 
-		done:       make(chan bool),
-		resultChan: make(chan []byte),
+		done:      make(chan bool),
+		responses: make(chan *CrawlerResponse),
 	}
 
 	go crawler.start()
@@ -69,8 +74,8 @@ func (c *PeriodicCrawler) SetURLs(urls []string) {
 
 // one-way channels
 
-func (c *PeriodicCrawler) Result() <-chan []byte {
-	return c.resultChan
+func (c *PeriodicCrawler) Result() <-chan *CrawlerResponse {
+	return c.responses
 }
 
 // internal helper
@@ -107,7 +112,10 @@ func (c *PeriodicCrawler) fetch(ctx context.Context, url string) error {
 			return err
 		}
 
-		c.resultChan <- body
+		c.responses <- &CrawlerResponse{
+			Url:  url,
+			Body: body,
+		}
 	} else {
 		log.Printf("[DEBUG] Status code %d\n", resp.StatusCode)
 	}
@@ -122,5 +130,5 @@ func (c *PeriodicCrawler) fetchWithDelay(ctx context.Context, url string, delay 
 
 func (c *PeriodicCrawler) Close() {
 	close(c.done)
-	close(c.resultChan)
+	close(c.responses)
 }
