@@ -140,11 +140,6 @@ func (client *Client) init(conn *amqp.Connection) error {
 		return err
 	}
 
-	err = declareGeolocationEvents(ch)
-	if err != nil {
-		return err
-	}
-
 	client.changeChannel(ch)
 	client.m.Lock()
 	client.isReady = true
@@ -249,43 +244,4 @@ func (client *Client) Close() error {
 
 	client.isReady = false
 	return nil
-}
-
-func declareGeolocationEvents(ch *amqp.Channel) error {
-	err := ch.ExchangeDeclare(
-		"geolocation", // name
-		"fanout",      // type
-		true,          // durable
-		false,         // auto-deleted
-		false,         // internal
-		false,         // no-wait
-		nil,           // arguments
-	)
-
-	if err != nil {
-		return err
-	}
-
-	q, err := ch.QueueDeclare(
-		"geolocationCreated", // name
-		false,                // durable
-		false,                // delete when unused
-		false,                // exclusive
-		false,                // no-wait
-		nil,                  // arguments
-	)
-
-	if err != nil {
-		return err
-	}
-
-	err = ch.QueueBind(
-		q.Name,                      // queue name
-		"geolocation.event.created", // routing key
-		"geolocation",               // exchange
-		false,
-		nil,
-	)
-
-	return err
 }
