@@ -1,7 +1,9 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
+	"log"
 	"log/slog"
 	"os"
 	"os/signal"
@@ -9,7 +11,7 @@ import (
 	"syscall"
 	"time"
 
-	amqp "github.com/rabbitmq/amqp091-go"
+	"github.com/wagslane/go-rabbitmq"
 
 	"github.com/catouberos/transit-watcher/internal/crawler"
 	"github.com/catouberos/transit-watcher/internal/handler"
@@ -35,8 +37,35 @@ func main() {
 	}()
 
 	// queue setup
-	queue := queues.New("amqp://guest:guest@localhost:5672/")
-	defer queue.Close()
+	conn, err := rabbitmq.NewConn(
+		"amqp://guest:guest@localhost:5672/",
+		rabbitmq.WithConnectionOptionsLogging,
+	)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer conn.Close()
+
+	routePub, err := rabbitmq.NewPublisher(
+		conn,
+		rabbitmq.WithPublisherOptionsLogging,
+		rabbitmq.WithPublisherOptionsExchangeName("route"),
+		rabbitmq.WithPublisherOptionsExchangeDeclare,
+	)
+
+	variantPub, err := rabbitmq.NewPublisher(
+		conn,
+		rabbitmq.WithPublisherOptionsLogging,
+		rabbitmq.WithPublisherOptionsExchangeName("variant"),
+		rabbitmq.WithPublisherOptionsExchangeDeclare,
+	)
+
+	geolocationPub, err := rabbitmq.NewPublisher(
+		conn,
+		rabbitmq.WithPublisherOptionsLogging,
+		rabbitmq.WithPublisherOptionsExchangeName("geolocation"),
+		rabbitmq.WithPublisherOptionsExchangeDeclare,
+	)
 
 	// crawler setup
 	transitDataCrawler := crawler.New(2*time.Hour, 0*time.Second)
@@ -74,10 +103,14 @@ func main() {
 					logger.Error("Error marshal route data", "error", err)
 				}
 
-				err = queue.Push(amqp.Publishing{
-					ContentType: "application/json",
-					Body:        data,
-				}, "route", "route.event.updated")
+				err = routePub.PublishWithContext(
+					context.Background(),
+					data,
+					[]string{"route.event.updated"},
+					rabbitmq.WithPublishOptionsContentType("application/json"),
+					rabbitmq.WithPublishOptionsMandatory,
+					rabbitmq.WithPublishOptionsPersistentDelivery,
+					rabbitmq.WithPublishOptionsExchange("route"))
 				if err != nil {
 					logger.Error("Cannot publish route update", "error", err)
 				}
@@ -103,10 +136,14 @@ func main() {
 					logger.Error("Error marshal variant data", "error", err)
 				}
 
-				err = queue.Push(amqp.Publishing{
-					ContentType: "application/json",
-					Body:        data,
-				}, "variant", "variant.event.updated")
+				err = variantPub.PublishWithContext(
+					context.Background(),
+					data,
+					[]string{"variant.event.updated"},
+					rabbitmq.WithPublishOptionsContentType("application/json"),
+					rabbitmq.WithPublishOptionsMandatory,
+					rabbitmq.WithPublishOptionsPersistentDelivery,
+					rabbitmq.WithPublishOptionsExchange("variant"))
 				if err != nil {
 					logger.Error("Cannot publish variant update", "error", err)
 				}
@@ -158,14 +195,14 @@ func main() {
 					continue
 				}
 
-				err = queue.Push(
-					amqp.Publishing{
-						ContentType: "application/json",
-						Body:        data,
-					},
-					"geolocation",               // exchange
-					"geolocation.event.created", // routing key
-				)
+				err = geolocationPub.PublishWithContext(
+					context.Background(),
+					data,
+					[]string{"geolocation.event.created"},
+					rabbitmq.WithPublishOptionsContentType("application/json"),
+					rabbitmq.WithPublishOptionsMandatory,
+					rabbitmq.WithPublishOptionsPersistentDelivery,
+					rabbitmq.WithPublishOptionsExchange("geolocation"))
 				if err != nil {
 					slog.Error("Cannot publish update to AMQP", "error", err)
 				}
