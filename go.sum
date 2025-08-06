@@ -2,6 +2,8 @@ github.com/catouberos/geoloc v0.0.0-20250804131617-d15e2dbabe1e h1:ojFkGsdWM+OsE
 github.com/catouberos/geoloc v0.0.0-20250804131617-d15e2dbabe1e/go.mod h1:6CpKiT8B2EdYwjEtSyRAX1rpEHHCpte3BFp4rJ9m084=
 github.com/catouberos/transit-radar v0.0.0-20250805172446-b74b4cea50f5 h1:spT0aTM53Mod5CDfSOY6oG+IF+0FtBUWClr0SBk6Urs=
 github.com/catouberos/transit-radar v0.0.0-20250805172446-b74b4cea50f5/go.mod h1:/hT6RVrS6nOeQvvO6Fh5SH1OF9VHB/24oO2uCUV30is=
+github.com/catouberos/transit-radar v0.0.0-20250806043907-c81b885e9692 h1:HHT3BSxxiIUjL6NtJB4P+9fQM0hRY942NF2k1QjVQZw=
+github.com/catouberos/transit-radar v0.0.0-20250806043907-c81b885e9692/go.mod h1:/hT6RVrS6nOeQvvO6Fh5SH1OF9VHB/24oO2uCUV30is=
 github.com/google/uuid v1.6.0 h1:NIvaJDMOsjHA8n1jAhLSgzrAzy1Hgr+hNrb57e+94F0=
 github.com/google/uuid v1.6.0/go.mod h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+yHo=
 github.com/rabbitmq/amqp091-go v1.10.0 h1:STpn5XsHlHGcecLmMFCtg7mqq0RnD+zFr4uzukfVhBw=

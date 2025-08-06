@@ -37,14 +37,18 @@ func NewRouteInsertData(g *models.GoBusRoute) (*dto.RouteUpsert, error) {
 	}
 
 	return &dto.RouteUpsert{
-		Number: g.Number,
-		Name:   g.Name,
-		EbmsID: ebmsID,
-		Active: true,
+		Number:        g.Number,
+		Name:          g.Name,
+		EbmsID:        ebmsID,
+		Active:        true,
+		OperationTime: g.Info.OperationTime,
+		Ticketing:     g.Info.Ticketing,
+		Organization:  g.Info.Organization,
+		RouteType:     g.Info.RouteType,
 	}, nil
 }
 
-func NewVariantInsertData(g *models.GoBusRouteVariant) (*dto.VariantByRouteEbmsIDUpsert, error) {
+func NewVariantInsertData(g *models.GoBusRouteVariantWithDescription) (*dto.VariantByRouteEbmsIDUpsert, error) {
 	ebmsID, err := strconv.ParseInt(g.Id, 10, 64)
 	if err != nil {
 		return nil, err
@@ -56,9 +60,15 @@ func NewVariantInsertData(g *models.GoBusRouteVariant) (*dto.VariantByRouteEbmsI
 	}
 
 	return &dto.VariantByRouteEbmsIDUpsert{
-		Name:        g.Name,
-		EbmsID:      ebmsID,
-		IsOutbound:  g.IsOutbound,
-		RouteEbmsID: routeEbmsID,
+		Name:          g.Name,
+		EbmsID:        ebmsID,
+		IsOutbound:    g.IsOutbound,
+		RouteEbmsID:   routeEbmsID,
+		ShortName:     g.ShortName,
+		Description:   g.Description,
+		Distance:      g.Distance,
+		Duration:      g.Duration,
+		StartStopName: g.StartStop,
+		EndStopName:   g.EndStop,
 	}, nil
 }

@@ -35,7 +35,7 @@ func GoBusDataHandler(conn *rabbitmq.Conn, responses <-chan *crawler.CrawlerResp
 	for response := range responses {
 		// unmarshal
 		routes := []models.GoBusRoute{}
-		variants := []models.GoBusRouteVariant{}
+		variants := []models.GoBusRouteVariantWithDescription{}
 
 		err := json.Unmarshal(response.Body, &routes)
 		if err != nil {
@@ -72,7 +72,18 @@ func GoBusDataHandler(conn *rabbitmq.Conn, responses <-chan *crawler.CrawlerResp
 			}
 
 			for _, variant := range route.Variants {
-				variants = append(variants, variant)
+				var description string
+
+				if variant.IsOutbound {
+					description = route.Info.OutboundDescription
+				} else {
+					description = route.Info.InboundDescription
+				}
+
+				variants = append(variants, models.GoBusRouteVariantWithDescription{
+					GoBusRouteVariant: variant,
+					Description:       description,
+				})
 			}
 		}
 

@@ -33,6 +33,12 @@ type GoBusRouteVariant struct {
 	Stops      []GoBusRouteVariantStop `json:"stops"`
 }
 
+type GoBusRouteVariantWithDescription struct {
+	GoBusRouteVariant
+
+	Description string `json:"-"`
+}
+
 type GoBusRouteVariantStop struct {
 	Id            string  `json:"_id"`
 	Code          string  `json:"code"`
