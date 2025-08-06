@@ -1,4 +1,4 @@
-package queues
+package handler
 
 import (
 	"regexp"
@@ -6,7 +6,7 @@ import (
 
 	"github.com/catouberos/transit-watcher/internal/models"
 
-	"github.com/catouberos/geoloc/dto"
+	"github.com/catouberos/transit-radar/dto"
 )
 
 func NewGeolocationInsertData(g *models.MultiGoGeolocation, isOutbound bool) (*dto.GeolocationByRouteIDAndPlateAndBoundInsert, error) {

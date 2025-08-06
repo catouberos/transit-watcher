@@ -10,3 +10,5 @@ require (
 	github.com/rabbitmq/amqp091-go v1.10.0
 	github.com/wagslane/go-rabbitmq v0.15.0
 )
+
+require github.com/catouberos/transit-radar v0.0.0-20250805172446-b74b4cea50f5 // indirect
