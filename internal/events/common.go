@@ -1,8 +1,9 @@
 package events
 
 import (
+	"uuid"
+
 	cloudevents "github.com/cloudevents/sdk-go/v2"
-	"github.com/google/uuid"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -17,7 +18,7 @@ func (c *kafkaEventHandler) CreateEvent(message proto.Message) (cloudevents.Even
 	}
 
 	event := cloudevents.NewEvent()
-	event.SetID(uuid.NewString())
+	event.SetID(uuid.NewV7().String())
 	event.SetSource(c.name)
 	event.SetSpecVersion(cloudevents.VersionV1)
 	event.SetType(string(message.ProtoReflect().Descriptor().Name()))

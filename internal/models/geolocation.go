@@ -5,17 +5,17 @@ import (
 )
 
 type Geolocation struct {
-	Degree    float32   `redis:"-"`
-	Location  LatLng    `redis:"-"`
-	Speed     float32   `redis:"-"`
-	VehicleID Identity  `redis:"-"`
-	RouteID   Identity  `redis:"-"`
-	VariantID Identity  `redis:"-"`
-	Timestamp time.Time `redis:"timestamp"`
-	Hash      uint64    `redis:"hash"`
+	Degree    float32    `redis:"-"`
+	Location  Coordinate `redis:"-"`
+	Speed     float32    `redis:"-"`
+	VehicleID Identity   `redis:"-"`
+	RouteID   Identity   `redis:"-"`
+	VariantID Identity   `redis:"-"`
+	Timestamp time.Time  `redis:"timestamp"`
+	Hash      uint64     `redis:"hash"`
 }
 
-type LatLng struct {
-	Latitude  float64
-	Longitude float64
+type Coordinate struct {
+	Latitude  float64 `json:"latitude"`
+	Longitude float64 `json:"longitude"`
 }

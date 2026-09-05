@@ -1,6 +1,10 @@
 package gobus
 
-import "encoding/json"
+import (
+	"encoding/json"
+
+	"github.com/twpayne/go-geom/encoding/geojson"
+)
 
 type Route struct {
 	Id       json.Number    `json:"_id"`
@@ -33,6 +37,7 @@ type RouteVariant struct {
 	IsOutbound bool               `json:"isOutbound" conform:"trim"`
 	Duration   int32              `json:"runningTime" conform:"trim"`
 	Stops      []RouteVariantStop `json:"stops"`
+	GeoJSON    geojson.Feature    `json:"geojson"`
 }
 
 type RouteVariantWithDescription struct {

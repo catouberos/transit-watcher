@@ -1,4 +1,4 @@
-package mapper
+package radarv1mapper
 
 import (
 	"testing"

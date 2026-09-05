@@ -8,8 +8,7 @@ import (
 	"net/url"
 	"strconv"
 	"time"
-
-	"github.com/google/uuid"
+	"uuid"
 )
 
 const (
@@ -56,18 +55,12 @@ func WithHTTPClient(httpClient *http.Client) option {
 }
 
 func injectCredentials(header *http.Header) error {
-	uuid, err := uuid.NewRandom()
-
-	if err != nil {
-		return err
-	}
-
 	epoch := time.Now().UnixMilli()
 	epochStr := strconv.FormatInt(epoch, 10)
 	secret := epochStr + DefaultCredentialSuffix
 	proof := md5.Sum([]byte(secret))
 
-	header.Add("device-id", uuid.String())
+	header.Add("device-id", uuid.New().String())
 	header.Add("epoch", epochStr)
 	header.Add("proof", hex.EncodeToString(proof[:]))
 	header.Add("client-version", "ios|26")

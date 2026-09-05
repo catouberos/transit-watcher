@@ -10,7 +10,7 @@ import (
 func MapTTGTGeolocation(vehicle ttgt.TransitVehicle, routeID, variantID string) models.Geolocation {
 	return models.Geolocation{
 		Degree: vehicle.Angle,
-		Location: models.LatLng{
+		Location: models.Coordinate{
 			Latitude:  vehicle.Coordinate[1],
 			Longitude: vehicle.Coordinate[0],
 		},

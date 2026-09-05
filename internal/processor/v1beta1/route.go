@@ -5,7 +5,7 @@ import (
 
 	"codeberg.org/transit-radar/transit-watcher/internal/config"
 	"codeberg.org/transit-radar/transit-watcher/internal/events"
-	"codeberg.org/transit-radar/transit-watcher/internal/mapper/v1beta1"
+	v1beta1 "codeberg.org/transit-radar/transit-watcher/internal/mapper/processor/v1beta1"
 	"codeberg.org/transit-radar/transit-watcher/internal/models"
 	"codeberg.org/transit-radar/transit-watcher/internal/processor"
 	"codeberg.org/transit-radar/transit-watcher/internal/store"

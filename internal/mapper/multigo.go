@@ -34,7 +34,7 @@ func MapMultiGoGeolocation(geolocation multigo.Geolocation, variantId string) (m
 
 	return models.Geolocation{
 		Degree: float32(degree),
-		Location: models.LatLng{
+		Location: models.Coordinate{
 			Latitude:  latitude,
 			Longitude: longitude,
 		},

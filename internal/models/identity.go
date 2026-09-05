@@ -8,6 +8,6 @@ const (
 )
 
 type Identity struct {
-	Identifier ExternalIdentifier `redis:"identifier"`
-	Value      string             `redis:"value"`
+	Identifier ExternalIdentifier `json:"identifier" redis:"identifier"`
+	Value      string             `json:"value" redis:"value"`
 }

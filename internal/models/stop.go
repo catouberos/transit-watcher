@@ -12,11 +12,11 @@ const (
 )
 
 type Stop struct {
-	ID       Identity `redis:"-"`
-	Code     string   `redis:"code"`
-	Name     string   `redis:"name"`
-	Type     StopType `redis:"-"`
-	Location LatLng   `redis:"-"`
+	ID       Identity   `json:"id" redis:"-"`
+	Code     string     `json:"code" redis:"code"`
+	Name     string     `json:"name" redis:"name"`
+	Type     StopType   `json:"type" redis:"-"`
+	Location Coordinate `json:"location" redis:"-"`
 
-	Hash uint64 `redis:"hash"`
+	Hash uint64 `json:"hash" redis:"hash"`
 }

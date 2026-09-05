@@ -40,7 +40,7 @@ func MapGoBusStop(stop gobus.Stop) (models.Stop, error) {
 		},
 		Code:     stop.Property.Code,
 		Name:     stop.Property.Name,
-		Location: models.LatLng{Latitude: lat, Longitude: lng},
+		Location: models.Coordinate{Latitude: lat, Longitude: lng},
 		Type:     stopType,
 		Hash:     hash,
 	}, nil
@@ -93,9 +93,10 @@ func MapGoBusVariant(variant gobus.RouteVariant) (models.Variant, error) {
 			Identifier: models.ExternalIdentifierEBMS,
 			Value:      variant.Id.String(),
 		},
-		Number:  variant.Name,
-		StopIDs: stopIDs,
-		Hash:    hash,
+		Headsign:  variant.Name,
+		ShortName: variant.ShortName,
+		StopIDs:   stopIDs,
+		Hash:      hash,
 	}, nil
 }
 
